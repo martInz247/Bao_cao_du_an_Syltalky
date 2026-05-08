@@ -1,4 +1,4 @@
-# Mẫu Báo Cáo Kết Quả Bài Tập cuối khóa 
+# Báo Cáo Kết Quả Bài Tập cuối khóa 
 
 ## 1. Thông Tin Nhóm
 
@@ -27,7 +27,7 @@ Team hoạt động theo Gitflow để quản lý code. Mỗi thành viên sẽ 
   - `develop`: Chứa code mới nhất, đã qua review và test
   - `feature/`: Các nhánh chứa code đang phát triển, short-live, sau khi hoàn thành sẽ merge vào `develop`. 
 
-![alt text](img/image.png)
+![alt text](Media/image-3.png)
 
 Sau mỗi tuần, team sẽ merge `develop` vào `main` để release phiên bản mới.
 
@@ -264,7 +264,7 @@ Frontend chỉ giao tiếp với backend. Backend sẽ trung gian xử lý và c
 
 
 **Video Demo:**
-[Video Link](#)
+[Video Link](https://drive.google.com/file/d/1lhMbMK5ZoaFQnScb8i0DMazJEfcsmzxZ/view?fbclid=IwY2xjawRq-SlleHRuA2FlbQIxMABicmlkETE3RmpJQTBoY2c5Q01PamZBc3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHh0ifyK9SwnjvOUlh66YvujgWTtWqPZFsLYvxYShSxWSUqdPkr52GZ1r-bty_aem_R_Whwb68PL8C7Ck6LzOiLA)
  
 ## 6. Các Vấn Đề Gặp Phải
 
