@@ -101,11 +101,31 @@ Cuộc họp trực tiếp còn hỗ trợ nhiều tính năng khác như:
 
 ### 4.1. Công Nghệ Sử Dụng
 ##### 4.1.1 Tech stack
-| Repo | Stack | Purpose |
-|---|---|---|
-| [`Syltalky_API/`](https://github.com/hoanghero125/Syltalky_API) | Python · FastAPI · CUDA | AI services: STT, TTS, sign language translation |
-| [`Syltalky_BE/`](https://github.com/hoanghero125/Syltalky_BE) | Python · FastAPI · PostgreSQL | Backend: auth, meetings, voice profiles, real-time captions |
-| [`Syltalky_FE/`](https://github.com/hoanghero125/Syltalky_FE) | React · Vite · LiveKit | Web app: all user-facing screens |
+**Frontend**
+| Library | Purpose |
+|---|---|
+| React 18 | UI |
+| Vite 5 | Build tool + dev server |
+| React Router v6 | Client-side routing |
+| Zustand | Global auth + user state |
+| LiveKit Components React | WebRTC video/audio grid |
+| Tiptap + Yjs | Collaborative rich-text notes (CRDT) |
+| react-markdown + KaTeX | Markdown + math rendering (meeting summaries) |
+| react-easy-crop | Avatar crop UI |
+
+**Backend**
+| Component | Version |
+|---|---|
+| Python | 3.11 |
+| FastAPI | latest |
+| PostgreSQL | 16 |
+| SQLAlchemy (async) | 2.x |
+| Alembic | migrations |
+| LiveKit Server SDK | Python |
+| MinIO | self-hosted S3 |
+| Redis | 7 |
+| Resend | transactional email |
+| Qwen3.5-35B-A3B (OpenAI-compatible proxy) | meeting summaries + AI chat assistant |
 
 ##### 4.1.2 Các dịch vụ ngoài
 | Service | Purpose |
@@ -130,6 +150,103 @@ Browser (Syltalky_FE)
     │                   └── HTTP  →  Syltalky_API (port 8000)
     │
     └── WebRTC   →  LiveKit (port 7880 / 7882 UDP)
+```
+
+**Frontend**
+```
+Syltalky_FE/
+├── src/
+│   ├── main.jsx                    ← React root, mounts <Router />
+│   ├── App.jsx                     ← Theme provider wrapper
+│   ├── router.jsx                  ← All routes + TokenRefresher + page transitions
+│   ├── store/index.js              ← Zustand store (auth + user)
+│   ├── styles/
+│   │   ├── globals.css             ← CSS reset + custom properties
+│   │   └── theme.js                ← Design tokens (colours, radii, shadows)
+│   ├── api/
+│   │   ├── client.js               ← apiFetch wrapper with auto token refresh
+│   │   └── meetings.js             ← meetings API
+│   ├── components/
+│   │   ├── Sidebar.jsx             ← App sidebar
+│   │   ├── UserAvatar.jsx          ← Shared avatar with fallback initials
+│   │   ├── AudioTrimmer.jsx        ← Waveform trim UI for voice clone
+│   │   └── AvatarCropper.jsx       ← react-easy-crop wrapper
+│   ├── hooks/
+│   │   └── useBreakpoint.js        ← Responsive breakpoint hook
+│   ├── layouts/
+│   │   └── AppLayout.jsx           ← Main app shell
+│   └── screens/
+│       ├── LandingPage.jsx
+│       ├── HomeScreen.jsx
+│       ├── LibraryScreen.jsx
+│       ├── MeetingDetailScreen.jsx
+│       ├── NotFoundScreen.jsx
+│       ├── auth/                   ← Login, Register, ForgotPassword, …
+│       ├── meeting/
+│       │   ├── DeviceCheckScreen.jsx
+│       │   ├── MeetingRoomScreen.jsx
+│       │   └── useMeetingExtras.js ← Hook for pins, polls, notes, co-hosts
+│       └── settings/               ← SettingsModal + panels
+├── public/
+│   └── favicon.ico
+├── index.html
+├── vite.config.js
+└── package.json
+```
+
+**Backend**
+```
+Syltalky_BE/
+├── app/
+│   ├── main.py              ← FastAPI app, lifespan (bucket + voice re-registration)
+│   ├── config.py            ← Settings (Pydantic BaseSettings, reads .env)
+│   ├── database.py          ← Async SQLAlchemy engine + session factory
+│   ├── core/
+│   │   ├── deps.py          ← get_current_user dependency
+│   │   ├── security.py      ← JWT creation/verification, password hashing
+│   │   └── meeting_auth.py  ← require_host_or_cohost, require_participant helpers
+│   ├── models/              ← SQLAlchemy ORM models
+│   ├── schemas/             ← Pydantic request/response schemas
+│   ├── routers/             ← One file per domain (auth, users, meetings, …)
+│   └── services/
+│       ├── minio_client.py  ← Upload, presigned URL, public URL generation
+│       ├── email.py         ← Resend email wrapper
+│       └── post_processing.py ← Transcript build + LLM summarise + notify
+├── alembic/                 ← Migration scripts
+├── docker-compose.yml
+├── Dockerfile
+└── .env.example
+```
+
+**API**
+```
+Syltalky_API/
+├── main.py                 ← sets HF_HOME before any import, starts uvicorn
+├── download_model.py       ← downloads all models (called automatically by main.py)
+├── requirements.txt
+├── demo.html               ← browser demo (sign + STT + TTS)
+└── app/
+    ├── api.py              ← FastAPI app, mounts all routers
+    ├── sign/               ← ASL → Vietnamese (Uni-Sign + RTMPose + EnViT5)
+    │   ├── router.py       ← POST /sign
+    │   ├── inference.py
+    │   ├── rtmlib-main/    ← bundled rtmlib (pip install -e)
+    │   ├── checkpoints/    ← openasl_pose_only_slt.pth (gitignored)
+    │   └── pretrained_weight/ ← mt5-base/ (gitignored)
+    ├── stt/                ← Vietnamese speech → text
+    │   ├── router.py       ← POST /stt, WS /ws/stt
+    │   ├── inference.py
+    │   ├── model/          ← Zipformer ONNX + bpe.model + silero_vad.onnx (gitignored)
+    │   └── .hf_cache/      ← HF cache for punct + NER models (gitignored)
+    ├── translation/        ← EN → VI (EnViT5, used internally by sign)
+    │   ├── inference.py
+    │   └── model/          ← EnViT5 weights (gitignored)
+    └── tts/                ← Vietnamese text → speech (OmniVoice)
+        ├── router.py       ← POST /tts/voice, /tts/synthesize, /tts/design
+        ├── inference.py
+        ├── omnivoice/      ← bundled OmniVoice source (pip install -e)
+        ├── speakers/       ← preset speaker ref audio (reserved)
+        └── checkpoints/    ← omnivoice-vietnamese weights (gitignored)
 ```
 
 Frontend chỉ giao tiếp với backend. Backend sẽ trung gian xử lý và chuyển toàn bộ các tác vụ AI sang AI API. AI API yêu cầu GPU hỗ trợ CUDA để hoạt động.
