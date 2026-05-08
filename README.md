@@ -141,9 +141,9 @@ Frontend chỉ giao tiếp với backend. Backend sẽ trung gian xử lý và c
 ## 5. Ảnh và Video Demo
 
 **Ảnh Demo:**
-![Ảnh màn hình chính](image.png)
-![Landing Page](image-1.png)
-![Tính năng](image-2.png)
+![Ảnh màn hình chính](Media/image.png)
+![Landing Page](Media/image-1.png)
+![Tính năng](Media/image-2.png)
 
 
 **Video Demo:**
